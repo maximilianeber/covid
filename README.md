@@ -13,6 +13,8 @@
     * Track and measure effectiveness of current policies
     * Track and measure clinical dynamics
 
+## Modelling Approach
+![Image of Flow](flow.png)
 
 ## Related material
 * [COVID Calculator](http://gabgoh.github.io/COVID/) ([Code](https://github.com/gabgoh/epcalc/blob/master/src/App.svelte))
