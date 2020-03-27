@@ -127,7 +127,8 @@ class Seir(object):
             .assign(
                 Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
-                R=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
+                R_combined=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
+                I_combined=lambda x: x["I"] + x["I_asymptomatic"] + x["I_mild"] + x["I_severe_home"] + x["I_severe_hospital"] + ["I_fatal_home"] + ["I_fatal_hospital"],
             )
             .rename(columns={"P": "Policy Strength"})
         )
@@ -152,7 +153,7 @@ class Seir(object):
         data = self.data
         fig, ax = plt.subplots(2, 2, figsize=(12, 8))
         data[["Policy Strength"]].plot(ax=ax[0, 0])
-        data[["S", "E", "I", "R"]].plot(ax=ax[0, 1])
+        data[["S", "E", "I_combined", "R_combined"]].plot(ax=ax[0, 1])
         data[["Hospitalized", "ICU"]].plot(ax=ax[1, 0])
         data[["R_from_asymptomatic", "R_from_mild", "R_from_severe", "Dead"]].plot(
             ax=ax[1, 1]
