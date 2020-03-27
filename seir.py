@@ -128,7 +128,7 @@ class Seir(object):
                 Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
                 R_combined=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
-                I_combined=lambda x: x["I"] + x["I_asymptomatic"] + x["I_mild"] + x["I_severe_home"] + x["I_severe_hospital"] + ["I_fatal_home"] + ["I_fatal_hospital"],
+                I_combined=lambda x: x["I"] + x["I_asymptomatic"] + x["I_mild"] + x["I_severe_home"] + x["I_severe_hospital"] + x["I_fatal_home"] + x["I_fatal_hospital"],
             )
             .rename(columns={"P": "Policy Strength"})
         )
