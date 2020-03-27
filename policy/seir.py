@@ -1,7 +1,3 @@
-import numpy
-import pandas as pd
-
-
 def simulator(parameters, start, periods, dT):
 
     """Modified SEIR model"""
@@ -53,13 +49,13 @@ def simulator(parameters, start, periods, dT):
         r_0_path += (r_0_days[cc] - previous_day) * [r_0_values[cc]]
         previous_day = r_0_days[cc]
 
-    ## Iterations
+    # Iterations
     for i in range(niter):
 
         # Computing the current beta
         beta = r_0_path[int(i * dT)] / t_infectious
 
-        ## Current model iteration
+        # Current model iteration
 
         T = series["T"][-1]
         S = series["S"][-1]
@@ -104,7 +100,7 @@ def simulator(parameters, start, periods, dT):
         dR_from_severe = ((1 / t_recovery_severe) * I_severe_hospital) * dT
         dDead = ((1 / t_death) * I_fatal_hospital) * dT
 
-        ## Storing simulated time series
+        # Storing simulated time series
 
         series["T"].append(T + dT)
         series["S"].append(S + dS)
