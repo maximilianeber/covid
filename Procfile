@@ -1,1 +1,1 @@
-web: voila —-port=$PORT —-no-browser dashboard.ipynb
+web: voila —-port=$PORT —-no-browser
