@@ -106,10 +106,15 @@ class Seir(object):
 
     @property
     def data(self, resampling_rule="1d"):
-        df = pd.DataFrame.from_dict(self.results).set_index("T")
-        df = df.resample(resampling_rule).first()
-        df["Hospitalised"] = (
-            df["I_severe_hospital"] + df["I_fatal_hospital"]
+        df = (
+            pd.DataFrame.from_dict(self.results)
+            .set_index("T")
+            .resample(resampling_rule)
+            .first()
+            .assign(
+                Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
+                Recovered=lambda x: x["R_from_mild"] + x["R_from_severe"],
+            )
         )
         return df
 

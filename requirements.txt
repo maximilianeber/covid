@@ -1,7 +1,10 @@
 black
+nb-black
 flake8
 numpy
 pandas
 seaborn
 numba
 ipykernel
+ipywidgets
+jupyterlab
