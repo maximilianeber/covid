@@ -1,7 +1,7 @@
 import datetime
 from datetime import timedelta
+import matplotlib.pyplot as plt
 import pandas as pd
-
 
 class Seir(object):
     def __init__(self, params, start, dT=0.01):
@@ -16,6 +16,7 @@ class Seir(object):
         # Initialize results with starting values
         self.results = {k: [v] for k, v in self.start.items()}
         self.results["T"] = [self.policy_path[0][0]]  # first date in policy path
+        self.results["P"] = [self.policy_path[0][1]]  # first policy in policy path
 
         for time, social_distancing in self.policy_path:
             self.iterate(time=time, social_distancing=social_distancing)
@@ -98,9 +99,9 @@ class Seir(object):
         dR_from_severe = ((1 / t_recovery_severe) * I_severe_hospital) * self.dT
         dDead = ((1 / t_death) * I_fatal_hospital) * self.dT
 
-        ## Storing simulated time self.results
-
+        # Storing simulated time self.results
         self.results["T"].append(time)
+        self.results["P"].append(social_distancing)
         self.results["S"].append(S + dS)
         self.results["E"].append(E + dE)
         self.results["I"].append(I + dI)
@@ -124,8 +125,10 @@ class Seir(object):
             .first()
             .assign(
                 Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
-                Recovered=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
+                ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
+                R=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
             )
+            .rename(columns={"P": "Policy Strength"})
         )
         return df
 
@@ -143,3 +146,17 @@ class Seir(object):
             date_path.extend(dates_regime)
             social_distancing_path.extend(social_distancing_path_regime)
         return list(zip(date_path, social_distancing_path))
+
+    def plot_summary(self):
+        data = self.data
+        fig, ax = plt.subplots(2, 2, figsize=(12, 8))
+        data[["Policy Strength"]].plot(ax=ax[0, 0])
+        data[["S", "E", "I", "R"]].plot(ax=ax[0, 1])
+        data[["Hospitalized", "ICU"]].plot(ax=ax[1, 0])
+        data[["R_from_asymptomatic", "R_from_mild", "R_from_severe", "Dead"]].plot(
+            ax=ax[1, 1]
+        )
+        for subplot in ax.reshape(-1):
+            subplot.set_xlabel("")
+        plt.show()
+        return None
