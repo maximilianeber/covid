@@ -3,6 +3,7 @@ from datetime import timedelta
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 class Seir(object):
     def __init__(self, params, start, dT=0.01):
         self.params = params
