@@ -63,10 +63,21 @@ class Seir(object):
         # Flows this time increment
 
         # Not infected
-        dS = (-beta * (1-social_distancing)**2 * (I + I_asymptomatic + (1-p_self_quarantine) * I_mild) * S) * self.dT
+        dS = (
+            -beta
+            * (1 - social_distancing) ** 2
+            * (I + I_asymptomatic + (1 - p_self_quarantine) * I_mild)
+            * S
+        ) * self.dT
 
         # Non-infectiuous incubation time
-        dE = (beta * (1-social_distancing)**2 * (I + I_asymptomatic + (1-p_self_quarantine) * I_mild) * S - a * E) * self.dT
+        dE = (
+            beta
+            * (1 - social_distancing) ** 2
+            * (I + I_asymptomatic + (1 - p_self_quarantine) * I_mild)
+            * S
+            - a * E
+        ) * self.dT
 
         # Infectious incubation time
         dI = (a * E - gamma * I) * self.dT
@@ -89,13 +100,17 @@ class Seir(object):
         ) * self.dT
 
         # C: Fatal course (two steps)
-        dI_fatal_home = (p_fatal * gamma * I - (1 / t_hospital_lag) * I_fatal_home) * self.dT
+        dI_fatal_home = (
+            p_fatal * gamma * I - (1 / t_hospital_lag) * I_fatal_home
+        ) * self.dT
         dI_fatal_hospital = (
             (1 / t_hospital_lag) * I_fatal_home - (1 / t_death) * I_fatal_hospital
         ) * self.dT
 
         # Final flows from courses of illness into recovery or death
-        dR_from_asymptomatic = ((1 / t_recovery_asymptomatic) * I_asymptomatic) * self.dT
+        dR_from_asymptomatic = (
+            (1 / t_recovery_asymptomatic) * I_asymptomatic
+        ) * self.dT
         dR_from_mild = ((1 / t_recovery_mild) * I_mild) * self.dT
         dR_from_severe = ((1 / t_recovery_severe) * I_severe_hospital) * self.dT
         dDead = ((1 / t_death) * I_fatal_hospital) * self.dT
@@ -112,7 +127,9 @@ class Seir(object):
         self.results["I_severe_hospital"].append(I_severe_hospital + dI_severe_hospital)
         self.results["I_fatal_home"].append(I_fatal_home + dI_fatal_home)
         self.results["I_fatal_hospital"].append(I_fatal_hospital + dI_fatal_hospital)
-        self.results["R_from_asymptomatic"].append(R_from_asymptomatic + dR_from_asymptomatic)
+        self.results["R_from_asymptomatic"].append(
+            R_from_asymptomatic + dR_from_asymptomatic
+        )
         self.results["R_from_mild"].append(R_from_mild + dR_from_mild)
         self.results["R_from_severe"].append(R_from_severe + dR_from_severe)
         self.results["Dead"].append(Dead + dDead)
@@ -127,8 +144,16 @@ class Seir(object):
             .assign(
                 Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
-                R_combined=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
-                I_combined=lambda x: x["I"] + x["I_asymptomatic"] + x["I_mild"] + x["I_severe_home"] + x["I_severe_hospital"] + x["I_fatal_home"] + x["I_fatal_hospital"],
+                R_combined=lambda x: x["R_from_asymptomatic"]
+                + x["R_from_mild"]
+                + x["R_from_severe"],
+                I_combined=lambda x: x["I"]
+                + x["I_asymptomatic"]
+                + x["I_mild"]
+                + x["I_severe_home"]
+                + x["I_severe_hospital"]
+                + x["I_fatal_home"]
+                + x["I_fatal_hospital"],
             )
             .rename(columns={"P": "Policy Strength"})
         )
@@ -138,7 +163,9 @@ class Seir(object):
     def _steps_to_path(social_distancing_steps, dT=1):
         """Convert dictionary of social_distancing steps to social_distancing path and associated dates"""
         dates = [datetime.datetime.fromisoformat(d) for d, _ in social_distancing_steps]
-        social_distancings = [social_distancing for _, social_distancing in social_distancing_steps]
+        social_distancings = [
+            social_distancing for _, social_distancing in social_distancing_steps
+        ]
         date_path = []
         social_distancing_path = []
         for i, x in enumerate(dates[:-1]):
