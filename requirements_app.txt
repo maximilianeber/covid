@@ -1,0 +1,8 @@
+python-dateutil==2.6.1
+Werkzeug==0.16.*
+flask
+flask-restplus
+zappa
+numpy
+matplotlib
+pandas
