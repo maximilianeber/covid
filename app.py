@@ -60,6 +60,7 @@ class Index(Resource):
 
 @api.route('/simulate')
 class Simulation(Resource):
+    @api.expect(parser)
     def post(self):
         args = parser.parse_args(strict=True)
         policy = [
@@ -68,8 +69,19 @@ class Simulation(Resource):
             (args.get("policy_period2") or "2020-07-21", args.get("policy_strength2") or .4),
             (args.get("policy_period2") or "2020-12-31", 0.0),
         ]
-        print(args)
-        print(policy)
+        seir = Seir(params, start)
+        seir.simulate(policy)
+        return seir.data.to_json(orient="split")
+    
+    @api.expect(parser)
+    def get(self):
+        args = parser.parse_args(strict=True)
+        policy = [
+            (args.get("policy_period0") or "2020-02-28", 0.0),
+            (args.get("policy_period1") or "2020-03-21", args.get("policy_strength1") or .8),
+            (args.get("policy_period2") or "2020-07-21", args.get("policy_strength2") or .4),
+            (args.get("policy_period2") or "2020-12-31", 0.0),
+        ]
         seir = Seir(params, start)
         seir.simulate(policy)
         return seir.data.to_json(orient="split")
