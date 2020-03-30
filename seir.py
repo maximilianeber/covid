@@ -45,7 +45,6 @@ class Seir(object):
         a = 1 / t_incubation
         gamma = 1 / t_presymptomatic  # but infectiuous
 
-        T = self.results["T"][-1]
         S = self.results["S"][-1]
         E = self.results["E"][-1]
         I = self.results["I"][-1]
@@ -142,17 +141,9 @@ class Seir(object):
         self.results["R_from_severe"].append(R_from_severe + dR_from_severe)
         self.results["Dead"].append(Dead + dDead)
 
-        # Computing R (social distancing term is squared because it reduces both the infectious and the to be infected fractions)
-        R0 = (
-            beta
-            * (1 - social_distancing) ** 2
-            * (
-                t_presymptomatic
-                + p_asymptomatic * t_recovery_asymptomatic
-                + p_mild * (1 - p_self_quarantine) * t_recovery_mild
-            )
-        )
-        self.results["R0"].append(R0)
+        # Current r
+        r = beta * (1 - infection_reduction) * duration_infectious
+        self.results["Hypothetical R0"].append(r)
 
     @property
     def data(self, resampling_rule="1d"):
@@ -227,7 +218,6 @@ class Seir(object):
             data[columns_with_individuals] * self.params["population_size"]
         )
         fig, ax = plt.subplots(4, 2, figsize=(12, 8))
-        #plt.ticklabel_format(style = 'plain')
         plt.tight_layout(pad=1.5)
         data[["Reduction in new infections through policy"]].plot(ax=ax[0, 0])
         data[["Hypothetical R0"]].plot(ax=ax[0, 1])
