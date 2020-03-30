@@ -45,7 +45,6 @@ class Seir(object):
         a = 1 / t_incubation
         gamma = 1 / t_presymptomatic  # but infectiuous
 
-        T = self.results["T"][-1]
         S = self.results["S"][-1]
         E = self.results["E"][-1]
         I = self.results["I"][-1]
@@ -141,10 +140,10 @@ class Seir(object):
         self.results["R_from_mild"].append(R_from_mild + dR_from_mild)
         self.results["R_from_severe"].append(R_from_severe + dR_from_severe)
         self.results["Dead"].append(Dead + dDead)
+
         # Current r
         r = beta * (1 - infection_reduction) * duration_infectious
         self.results["Hypothetical R0"].append(r)
-        #print(r) # for debugging
 
     @property
     def data(self, resampling_rule="1d"):
@@ -174,6 +173,8 @@ class Seir(object):
                 + x["I_severe_hospital"]
                 + x["I_fatal_home"]
                 + x["I_fatal_hospital"],
+                HospitalCapacity=self.params["hospital_capacity"],
+                IcuCapacity=self.params["icu_capacity"],
             )
             .rename(columns={"P": "Reduction in new infections through policy"})
         )
@@ -213,9 +214,10 @@ class Seir(object):
             "R_from_mild",
             "R_from_severe",
         ]
-        data[columns_with_individuals] = data[columns_with_individuals] * 82790000
+        data[columns_with_individuals] = (
+            data[columns_with_individuals] * self.params["population_size"]
+        )
         fig, ax = plt.subplots(4, 2, figsize=(12, 8))
-        #plt.ticklabel_format(style = 'plain')
         plt.tight_layout(pad=1.5)
         data[["Reduction in new infections through policy"]].plot(ax=ax[0, 0])
         data[["Hypothetical R0"]].plot(ax=ax[0, 1])
