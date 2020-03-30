@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restplus import Resource, Api, reqparse
+from flask_restplus import Resource, Api, reqparse, cors
 from seir import Seir
 
 
@@ -8,7 +8,7 @@ api = Api(app)
 
 # Starting Values
 params = {
-    "beta": 0.5,
+    "beta": 0.35,
     "t_incubation": 5.5,
     "t_presymptomatic": 1.5,
     "t_recovery_asymptomatic": 5,
@@ -17,16 +17,16 @@ params = {
     "t_death": 14,
     "t_hospital_lag": 5,
     "p_asymptomatic": 0.3,
-    "p_severe": 0.18,
-    "p_fatal": 0.02,
+    "p_severe": 0.09,
+    "p_fatal": 0.01,
     "p_self_quarantine": 0.5,
     "p_icu_given_hospital": 0.20,
 }
 
 start = {
     "T": 0.0,
-    "S": (1 - 1 / 10000),
-    "E": 1 / 10000,
+    "S": (1 - 0.024 / 10000),
+    "E": 0.024 / 10000,  # assumng 200 people where infected in the beginning
     "I": 0.0,
     "I_asymptomatic": 0.0,
     "I_mild": 0.0,
@@ -38,6 +38,7 @@ start = {
     "R_from_mild": 0.0,
     "R_from_severe": 0.0,
     "Dead": 0,
+    "R0": 0,
 }
 
 # Argument parser
@@ -74,6 +75,7 @@ class Simulation(Resource):
         return seir.data.to_json(orient="split")
     
     @api.expect(parser)
+    @cors.crossdomain(origin='*')
     def get(self):
         args = parser.parse_args(strict=True)
         policy = [
