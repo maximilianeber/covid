@@ -158,6 +158,7 @@ class Seir(object):
             .assign(
                 Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
+                HospitalizedExclICU=lambda x: x["Hospitalized"] - x["ICU"],
                 R_combined=lambda x: x["R_from_asymptomatic"]
                 + x["R_from_mild"]
                 + x["R_from_severe"],
