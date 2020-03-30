@@ -175,7 +175,7 @@ class Seir(object):
                 + x["I_fatal_home"]
                 + x["I_fatal_hospital"],
             )
-            .rename(columns={"P": "Reduction of infections through candidate policy"})
+            .rename(columns={"P": "Reduction of new infections through candidate policy"})
         )
         return df
 
@@ -217,7 +217,7 @@ class Seir(object):
         fig, ax = plt.subplots(4, 2, figsize=(12, 8))
         #plt.ticklabel_format(style = 'plain')
         plt.tight_layout(pad=1.5)
-        data[["Reduction of infections through candidate policy"]].plot(ax=ax[0, 0])
+        data[["Reduction of new infections through candidate policy"]].plot(ax=ax[0, 0])
         data[["Hypothetical R0"]].plot(ax=ax[0, 1])
         data[["Have_or_had_virus"]].plot(ax=ax[1, 0])
         data[["Dead"]].plot(ax=ax[1, 1])
