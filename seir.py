@@ -135,7 +135,15 @@ class Seir(object):
         self.results["Dead"].append(Dead + dDead)
 
         # Computing R (social distancing term is squared because it reduces both the infectious and the to be infected fractions)
-        R0 = beta*(1-social_distancing)**2*(t_presymptomatic + p_asymptomatic*t_recovery_asymptomatic + p_mild*(1-p_self_quarantine)*t_recovery_mild)
+        R0 = (
+            beta
+            * (1 - social_distancing) ** 2
+            * (
+                t_presymptomatic
+                + p_asymptomatic * t_recovery_asymptomatic
+                + p_mild * (1 - p_self_quarantine) * t_recovery_mild
+            )
+        )
         self.results["R0"].append(R0)
 
     @property
@@ -148,9 +156,26 @@ class Seir(object):
             .assign(
                 Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
-                R_combined=lambda x: x["R_from_asymptomatic"] + x["R_from_mild"] + x["R_from_severe"],
-                I_combined=lambda x: x["I"] + x["I_asymptomatic"] + x["I_mild"] + x["I_severe_home"] + x["I_severe_hospital"] + x["I_fatal_home"] + x["I_fatal_hospital"],
-                Currently_infected=lambda x: x["E"] + x["I"] + x["I_asymptomatic"] + x["I_mild"] + x["I_severe_home"] + x["I_severe_hospital"] + x["I_fatal_home"] + x["I_fatal_hospital"],
+                R_combined=lambda x: x["R_from_asymptomatic"]
+                + x["R_from_mild"]
+                + x["R_from_severe"],
+                I_combined=lambda x: x["I"]
+                + x["I_asymptomatic"]
+                + x["I_mild"]
+                + x["I_severe_home"]
+                + x["I_severe_hospital"]
+                + x["I_fatal_home"]
+                + x["I_fatal_hospital"],
+                Currently_infected=lambda x: x["E"]
+                + x["I"]
+                + x["I_asymptomatic"]
+                + x["I_mild"]
+                + x["I_severe_home"]
+                + x["I_severe_hospital"]
+                + x["I_fatal_home"]
+                + x["I_fatal_hospital"],
+                HospitalCapacity=self.params["hospital_capacity"],
+                IcuCapacity=self.params["icu_capacity"],
             )
             .rename(columns={"P": "Policy Strength"})
         )
@@ -158,7 +183,7 @@ class Seir(object):
 
     @staticmethod
     def _steps_to_path(social_distancing_steps, dT=1):
-        """Convert dictionary of social_distancing steps to social_distancing path and associated dates"""
+        """Convert dictionary of policy steps to path and associated dates"""
         dates = [datetime.datetime.fromisoformat(d) for d, _ in social_distancing_steps]
         social_distancings = [
             social_distancing for _, social_distancing in social_distancing_steps
@@ -175,31 +200,37 @@ class Seir(object):
 
     def plot_summary(self):
         data = self.data
-        data["Have_or_had_virus"] = data["Currently_infected"] + data["R_combined"] + data["Dead"]
-        columns_with_individuals = ["Have_or_had_virus",
-                                    "Currently_infected",
-                                    "Hospitalized",
-                                    "ICU",
-                                    "S",
-                                    "E",
-                                    "I_combined",
-                                    "R_combined",
-                                    "Dead",
-                                    "R_from_asymptomatic",
-                                    "R_from_mild",
-                                    "R_from_severe"]
-        data[columns_with_individuals] = data[columns_with_individuals]*82790000
+        data["Have_or_had_virus"] = (
+            data["Currently_infected"] + data["R_combined"] + data["Dead"]
+        )
+        columns_with_individuals = [
+            "Have_or_had_virus",
+            "Currently_infected",
+            "Hospitalized",
+            "ICU",
+            "S",
+            "E",
+            "I_combined",
+            "R_combined",
+            "Dead",
+            "R_from_asymptomatic",
+            "R_from_mild",
+            "R_from_severe",
+        ]
+        data[columns_with_individuals] = (
+            data[columns_with_individuals] * self.params["population_size"]
+        )
         fig, ax = plt.subplots(4, 2, figsize=(12, 8))
         data[["Policy Strength"]].plot(ax=ax[0, 0])
         data[["R0"]].plot(ax=ax[0, 1])
         data[["Have_or_had_virus"]].plot(ax=ax[1, 0])
-        data[["Dead"]].plot(
-            ax=ax[1, 1]
-        )
+        data[["Dead"]].plot(ax=ax[1, 1])
         data[["Currently_infected", "Hospitalized"]].plot(ax=ax[2, 0])
         data[["ICU"]].plot(ax=ax[2, 1])
         data[["S", "E", "I_combined", "R_combined"]].plot(ax=ax[3, 0])
-        data[["R_from_asymptomatic", "R_from_mild", "R_from_severe", "Dead"]].plot(ax=ax[3, 1])
+        data[["R_from_asymptomatic", "R_from_mild", "R_from_severe", "Dead"]].plot(
+            ax=ax[3, 1]
+        )
         for subplot in ax.reshape(-1):
             subplot.set_xlabel("")
         plt.show()
