@@ -9,3 +9,5 @@ ipykernel
 ipywidgets
 jupyterlab
 voila
+flask
+flask-restplus
