@@ -191,6 +191,7 @@ class Seir(object):
             "Have_or_had_virus",
             "Currently_infected",
             "Hospitalized",
+            "HospitalizedExclICU",
             "ICU",
             "Dead",
             "R_from_asymptomatic",
