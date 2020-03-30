@@ -205,12 +205,8 @@ class Seir(object):
     @staticmethod
     def _steps_to_path(infection_reduction_steps, dT=1):
         """Convert dictionary of infection_reduction steps to infection_reduction path and associated dates"""
-        dates = [
-            datetime.datetime.fromisoformat(d) for d, _ in infection_reduction_steps
-        ]
-        infection_reductions = [
-            infection_reduction for _, infection_reduction in infection_reduction_steps
-        ]
+        isodates, infection_reductions = zip(*infection_reduction_steps)
+        dates = [datetime.datetime.fromisoformat(d) for d in isodates]
         date_path = []
         infection_reduction_path = []
         for i, x in enumerate(dates[:-1]):
