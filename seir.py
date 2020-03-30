@@ -111,7 +111,8 @@ class Seir(object):
             p_fatal * gamma * I - (1 / t_home_severe) * I_fatal_home
         ) * self.dT
         dI_fatal_hospital = (
-            (1 / t_home_severe) * I_fatal_home - (1 / t_hospital_severe_deceased) * I_fatal_hospital
+            (1 / t_home_severe) * I_fatal_home
+            - (1 / t_hospital_severe_deceased) * I_fatal_hospital
         ) * self.dT
 
         # Final flows from courses of illness into recovery or death
@@ -119,7 +120,9 @@ class Seir(object):
             (1 / t_recovery_asymptomatic) * I_asymptomatic
         ) * self.dT
         dR_from_mild = ((1 / t_recovery_mild) * I_mild) * self.dT
-        dR_from_severe = ((1 / t_hospital_severe_recovered) * I_severe_hospital) * self.dT
+        dR_from_severe = (
+            (1 / t_hospital_severe_recovered) * I_severe_hospital
+        ) * self.dT
         dDead = ((1 / t_hospital_severe_deceased) * I_fatal_hospital) * self.dT
 
         # Storing simulated time self.results
@@ -175,9 +178,28 @@ class Seir(object):
                 + x["I_fatal_hospital"],
                 HospitalCapacity=self.params["hospital_capacity"],
                 IcuCapacity=self.params["icu_capacity"],
+                Have_or_had_virus=lambda x: x["Currently_infected"]
+                + x["R_combined"]
+                + x["Dead"],
             )
             .rename(columns={"P": "Reduction in new infections through policy"})
         )
+
+        # Scale
+        columns_with_individuals = [
+            "Have_or_had_virus",
+            "Currently_infected",
+            "Hospitalized",
+            "ICU",
+            "Dead",
+            "R_from_asymptomatic",
+            "R_from_mild",
+            "R_from_severe",
+        ]
+        df[columns_with_individuals] = (
+            df[columns_with_individuals] * self.params["population_size"]
+        )
+
         return df
 
     @staticmethod
@@ -201,22 +223,6 @@ class Seir(object):
 
     def plot_summary(self):
         data = self.data
-        data["Have_or_had_virus"] = (
-            data["Currently_infected"] + data["R_combined"] + data["Dead"]
-        )
-        columns_with_individuals = [
-            "Have_or_had_virus",
-            "Currently_infected",
-            "Hospitalized",
-            "ICU",
-            "Dead",
-            "R_from_asymptomatic",
-            "R_from_mild",
-            "R_from_severe",
-        ]
-        data[columns_with_individuals] = (
-            data[columns_with_individuals] * self.params["population_size"]
-        )
         fig, ax = plt.subplots(4, 2, figsize=(12, 8))
         plt.tight_layout(pad=1.5)
         data[["Reduction in new infections through policy"]].plot(ax=ax[0, 0])

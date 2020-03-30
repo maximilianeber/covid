@@ -30,7 +30,7 @@ class Simulation(Resource):
 
         seir = Seir(params=params_request, start=start_request)
         seir.simulate(policy_request)
-        return seir.data.to_json(orient="split")
+        return seir.data.reset_index().to_dict(orient="list")
 
     @api.expect(parser)
     @cors.crossdomain(origin="*")
@@ -42,7 +42,7 @@ class Simulation(Resource):
 
         seir = Seir(params=params_request, start=start_request)
         seir.simulate(policy_request)
-        return seir.data.to_json(orient="split")
+        return seir.data.reset_index().to_dict(orient="list")
 
 
 if __name__ == "__main__":
