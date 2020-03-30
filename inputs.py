@@ -20,7 +20,7 @@ params = {
 start = {
     "T": 0.0,
     "S": (1 - 0.006 / 10000),
-    "E": 0.0000006,  # assuming 50 people had just caught the virus (currently assumed to be 15/01/2020)
+    "E": 0.006 / 10000,  # assuming 50 people had just caught the virus (currently assumed to be 15/01/2020)
     "I": 0.0,
     "I_asymptomatic": 0.0,
     "I_mild": 0.0,
