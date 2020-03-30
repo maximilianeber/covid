@@ -1,17 +1,17 @@
 params = {
-    "beta": 0.35,
-    "t_incubation": 5.5,
-    "t_presymptomatic": 1.5,
-    "t_recovery_asymptomatic": 5,
-    "t_recovery_mild": 14,
-    "t_recovery_severe": 30.5,
-    "t_death": 14,
-    "t_hospital_lag": 5,
+    "r0": 2.4,
+    "t_incubation": 4.6,
+    "t_presymptomatic": 0.5,
+    "t_recovery_asymptomatic": 6,
+    "t_recovery_mild": 6,
+    "t_home_severe": 5,
+    "t_hospital_severe_recovered": 10.4,
+    "t_hospital_severe_deceased": 10.4,
     "p_asymptomatic": 0.3,
-    "p_severe": 0.09,
-    "p_fatal": 0.01,
-    "p_self_quarantine": 0.5,
-    "p_icu_given_hospital": 0.20,
+    "p_severe": 0.044,
+    "p_fatal": 0.009,
+    "p_self_quarantine": 0.66,
+    "p_icu_given_hospital": 0.30,
     "population_size": 82790000,
     "hospital_capacity": 200000,
     "icu_capacity": 14000,
@@ -19,8 +19,8 @@ params = {
 
 start = {
     "T": 0.0,
-    "S": (1 - 0.024 / 10000),
-    "E": 0.024 / 10000,  # assumng 200 people where infected in the beginning
+    "S": (1 - 0.006 / 10000),
+    "E": 0.0000006,  # assuming 50 people had just caught the virus (currently assumed to be 15/01/2020)
     "I": 0.0,
     "I_asymptomatic": 0.0,
     "I_mild": 0.0,
@@ -32,7 +32,7 @@ start = {
     "R_from_mild": 0.0,
     "R_from_severe": 0.0,
     "Dead": 0,
-    "R0": 0,
+    "Hypothetical R0": 2.4,
 }
 
 policy = {
