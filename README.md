@@ -24,7 +24,7 @@ You can play with the [interactive version](https://quirky-mclean-bf617d.netlify
 We have followed the [code](https://github.com/gabgoh/epcalc/blob/master/src/App.svelte) that is underlying the Covid Calculator closesly. We extended the model in a couple of ways. Most importantly, we allow for dynamic policy paths. Moreover, we have added a few additional features. For example, we allow for asymptomatic infections, which turns the share of asymptomatic infections into an important parameter. Please check `seir.py` for the exact model mechanics.
 
 #### Flow diagram
-![Image of Flow](flow.png)
+<img alt="Illustration of Flows" src="flow.png" width="400"/>
 
 #### Authors
 Friedrich Geiecke  
