@@ -24,8 +24,7 @@ class Seir(object):
 
     def iterate(self, time, infection_reduction):
         """Iterate current state forward by one step with current infection_reduction"""
-        # Roll forward time
-        time = time + timedelta(days=self.dT)
+        time = time + timedelta(days=self.dT)  # roll forward time
 
         # Retrieve parameters
         r0 = self.params["r0"]
@@ -59,15 +58,13 @@ class Seir(object):
         R_from_severe = self.results["R_from_severe"][-1]
         Dead = self.results["Dead"][-1]
 
-        # Computing the beta without any forced social distancing
+        # Compute beta without any forced social distancing
         duration_infectious = (
             t_presymptomatic
             + p_asymptomatic * t_recovery_asymptomatic
             + p_mild * (1 - p_self_quarantine) * t_recovery_mild
         )
         beta = r0 / duration_infectious
-
-        # Flows this time increment
 
         # Not infected
         dS = (
@@ -125,7 +122,7 @@ class Seir(object):
         ) * self.dT
         dDead = ((1 / t_hospital_severe_deceased) * I_fatal_hospital) * self.dT
 
-        # Storing simulated time self.results
+        # Store results
         self.results["T"].append(time)
         self.results["P"].append(infection_reduction)
         self.results["S"].append(S + dS)
@@ -144,7 +141,6 @@ class Seir(object):
         self.results["R_from_severe"].append(R_from_severe + dR_from_severe)
         self.results["Dead"].append(Dead + dDead)
 
-        # Current r
         r = beta * (1 - infection_reduction) * duration_infectious
         self.results["Hypothetical R0"].append(r)
 
@@ -197,6 +193,7 @@ class Seir(object):
             "R_from_asymptomatic",
             "R_from_mild",
             "R_from_severe",
+            "R_combined",
         ]
         df[columns_with_individuals] = (
             df[columns_with_individuals] * self.params["population_size"]
