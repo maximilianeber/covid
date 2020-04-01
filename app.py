@@ -1,14 +1,16 @@
-from flask import Flask
+import os
+import dotenv
+from flask import Flask, request
 from flask_restplus import Resource, Api, reqparse, cors
 from numpy import datetime_as_string
 from seir import Seir
 from inputs import policy, params, start, args_to_policy
 
-
 app = Flask(__name__)
-api = Api(app)
-
-
+auth = {"apikey": {"type": "apiKey", "in": "header", "name": "X-API-KEY"}}
+api = Api(app, authorizations=auth)
+dotenv.load_dotenv()
+api_key = os.environ.get("X-API-KEY")
 parser = reqparse.RequestParser()
 
 for k, v in policy.items():
@@ -28,37 +30,42 @@ def data_to_list(df):
         .assign(time=lambda x: datetime_as_string(x["time"], unit="D"))
         .to_dict(orient="list")
     )
-
     for k, v in data.items():
         data[k] = [k] + v
-
     return data
 
 
 @api.route("/simulate")
 class Simulation(Resource):
     @api.expect(parser)
+    @api.doc(security="apikey")
     def post(self):
-        args = parser.parse_args(strict=True)
-        policy_request = args_to_policy(args)
-        params_request = {k: args[k] for k in params.keys()}
-        start_request = {k: args[k] for k in start.keys()}
+        if request.headers.get("X-API-KEY") != api_key:
+            return "ERROR: Unauthorized", 401
+        else:
+            args = parser.parse_args(strict=True)
+            policy_request = args_to_policy(args)
+            params_request = {k: args[k] for k in params.keys()}
+            start_request = {k: args[k] for k in start.keys()}
 
-        seir = Seir(params=params_request, start=start_request)
-        seir.simulate(policy_request)
+            seir = Seir(params=params_request, start=start_request)
+            seir.simulate(policy_request)
         return data_to_list(seir.data)
 
     @api.expect(parser)
     @cors.crossdomain(origin="*")
+    @api.doc(security="apikey")
     def get(self):
-        args = parser.parse_args(strict=True)
-        policy_request = args_to_policy(args)
-        params_request = {k: args[k] for k in params.keys()}
-        start_request = {k: args[k] for k in start.keys()}
-
-        seir = Seir(params=params_request, start=start_request)
-        seir.simulate(policy_request)
-        return data_to_list(seir.data)
+        if request.headers.get("X-API-KEY") != api_key:
+            return "ERROR: Unauthorized", 401
+        else:
+            args = parser.parse_args(strict=True)
+            policy_request = args_to_policy(args)
+            params_request = {k: args[k] for k in params.keys()}
+            start_request = {k: args[k] for k in start.keys()}
+            seir = Seir(params=params_request, start=start_request)
+            seir.simulate(policy_request)
+            return data_to_list(seir.data)
 
 
 if __name__ == "__main__":

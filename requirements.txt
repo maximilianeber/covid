@@ -8,3 +8,4 @@ flask
 flask-restplus
 ipywidgets
 jupyterlab
+python-dotenv
