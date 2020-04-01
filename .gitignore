@@ -3,6 +3,9 @@ zappa_settings.json
 zappa_requirements.txt
 zappa_snippets.md
 
+# Spreadsheet
+scenarios.xlsx
+
 .vscode
 
 # Byte-compiled / optimized / DLL files
