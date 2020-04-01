@@ -197,6 +197,7 @@ class Seir(object):
             "R_from_asymptomatic",
             "R_from_mild",
             "R_from_severe",
+            "R_combined",
         ]
         df[columns_with_individuals] = (
             df[columns_with_individuals] * self.params["population_size"]
