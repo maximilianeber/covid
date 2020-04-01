@@ -1,4 +1,8 @@
+# API-related
 zappa_settings.json
+zappa_requirements.txt
+zappa_snippets.md
+
 .vscode
 
 # Byte-compiled / optimized / DLL files
