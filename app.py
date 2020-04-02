@@ -1,12 +1,14 @@
 import os
 import dotenv
 from flask import Flask, request
-from flask_restplus import Resource, Api, reqparse, cors
+from flask_restplus import Resource, Api, reqparse
+from flask_cors import CORS
 from numpy import datetime_as_string
 from seir import Seir
 from inputs import policy, params, start, args_to_policy
 
 app = Flask(__name__)
+CORS(app, resources={r"/simulate": {"origins": "*"}})
 auth = {"apikey": {"type": "apiKey", "in": "header", "name": "X-API-KEY"}}
 api = Api(app, authorizations=auth)
 dotenv.load_dotenv()
@@ -53,7 +55,6 @@ class Simulation(Resource):
         return data_to_list(seir.data)
 
     @api.expect(parser)
-    @cors.crossdomain(origin="*")
     @api.doc(security="apikey")
     def get(self):
         if request.headers.get("X-API-KEY") != api_key:

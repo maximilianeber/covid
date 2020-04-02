@@ -6,6 +6,7 @@ pandas
 seaborn
 flask
 flask-restplus
+flask-cors
 ipywidgets
 jupyterlab
 python-dotenv
