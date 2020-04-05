@@ -27,7 +27,7 @@ for k, v in start.items():
 
 def data_to_list(df):
     data = (
-        df.reset_index()
+        df.reset_index()[1:]  # drop initialization (first day)
         .rename(columns={"T": "time"})
         .assign(time=lambda x: datetime_as_string(x["time"], unit="D"))
         .to_dict(orient="list")
