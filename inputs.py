@@ -8,7 +8,7 @@ params = {
     "t_sev_hos_rec": 25.5,
     "t_sev_hos_dec": 9,
     "p_asy": 0.3,
-    "p_sev_rec": 0.044, #
+    "p_sev_rec": 0.044,
     "p_sev_dec": 0.009,
     "self_quar_strength": 0.0,
     "p_icu_given_hospital": 0.30,
