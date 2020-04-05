@@ -62,7 +62,7 @@ class Seir(object):
         duration_infectious = (
             t_presymptomatic
             + p_asymptomatic * t_recovery_asymptomatic
-            + p_mild * t_recovery_mild
+            + p_mild * (1 - p_self_quarantine) * t_recovery_mild
         )
         beta = r0 / duration_infectious
 
@@ -141,12 +141,7 @@ class Seir(object):
         self.results["R_from_severe"].append(R_from_severe + dR_from_severe)
         self.results["Dead"].append(Dead + dDead)
 
-        duration_infectious_with_policy = (
-                    t_presymptomatic
-                    + p_asymptomatic * t_recovery_asymptomatic
-                    + p_mild * (1 - p_self_quarantine) * t_recovery_mild
-                )
-        r = beta * (1 - infection_reduction) * duration_infectious_with_policy
+        r = beta * (1 - infection_reduction) * duration_infectious
         self.results["Hypothetical R0"].append(r)
 
     @property
