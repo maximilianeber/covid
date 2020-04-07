@@ -10,143 +10,179 @@ class Seir(object):
         self.start = start
         self.dT = dT
 
-    def simulate(self, infection_reduction_steps):
+    def simulate(self, policy_strength_steps):
         # Convert policy steps to daily paths
-        self.policy_path = self._steps_to_path(infection_reduction_steps, dT=self.dT)
+        self.policy_path = self._steps_to_path(policy_strength_steps, dT=self.dT)
 
         # Initialize results with starting values
         self.results = {k: [v] for k, v in self.start.items()}
         self.results["T"] = [self.policy_path[0][0]]  # first date in policy path
         self.results["P"] = [self.policy_path[0][1]]  # first policy in policy path
 
-        for time, infection_reduction in self.policy_path:
-            self.iterate(time=time, infection_reduction=infection_reduction)
+        for time, policy_strength in self.policy_path:
+            self.iterate(time=time, policy_strength=policy_strength)
 
-    def iterate(self, time, infection_reduction):
-        """Iterate current state forward by one step with current infection_reduction"""
+    def iterate(self, time, policy_strength):
+        """Iterate current state forward by one step with current policy_strength"""
         time = time + timedelta(days=self.dT)  # roll forward time
 
-        # Retrieve parameters
+        ## Retrieve parameters
+
+        # Basic repreproduction number
         r0 = self.params["r0"]
-        t_incubation = self.params["t_incubation"]
-        t_presymptomatic = self.params["t_presymptomatic"]
-        t_recovery_asymptomatic = self.params["t_recovery_asymptomatic"]
-        t_recovery_mild = self.params["t_recovery_mild"]
-        t_hospital_severe_recovered = self.params["t_hospital_severe_recovered"]
-        t_home_severe = self.params["t_home_severe"]
-        t_hospital_severe_deceased = self.params["t_hospital_severe_deceased"]
-        p_self_quarantine = self.params["p_self_quarantine"]
-        p_asymptomatic = self.params["p_asymptomatic"]
-        p_severe = self.params["p_severe"]
-        p_fatal = self.params["p_fatal"]
-        p_mild = 1 - p_asymptomatic - p_severe - p_fatal
 
-        a = 1 / t_incubation
-        gamma = 1 / t_presymptomatic  # but infectiuous
+        # Non-infectious incubation period
+        t_e_inc = self.params["t_e_inc"]
+        # Infectious incubation period
+        t_i_inc = self.params["t_i_inc"]
+        # Duration illness asymptomatic course
+        t_asy = self.params["t_asy"]
+        # Duration illness mild course
+        t_mild = self.params["t_mild"]
+        # Duration until severe cases enter the hospital
+        t_sev_pre_hos = self.params["t_sev_pre_hos"]
+        # Duration hospital stay severe cases who recover
+        t_sev_hos_rec = self.params["t_sev_hos_rec"]
+        # Duration hospital stay severe cases who decease
+        t_sev_hos_dec = self.params["t_sev_hos_dec"]
 
+        # Share of asymptomatic cases
+        p_asy = self.params["p_asy"]
+        # Share of severe cases who whill recover
+        p_sev_rec = self.params["p_sev_rec"]
+        # Share of severe cases who will decease, mortality rate
+        p_sev_dec = self.params["p_sev_dec"]
+        # Share of mild cases
+        p_mild = 1 - p_asy - p_sev_rec - p_sev_dec
+
+        # Share of individuals with symptoms who self-quarantine
+        self_quar_strength = self.params["self_quar_strength"]
+
+        ## Model equations
+
+        # Quantities
+
+        # Susceptible
         S = self.results["S"][-1]
+        # In non-infectious incubation time
         E = self.results["E"][-1]
-        I = self.results["I"][-1]
-        I_asymptomatic = self.results["I_asymptomatic"][-1]
+        # In infectious incubation time
+        I_inc = self.results["I_inc"][-1]
+        # Infectious, asymptomatic course
+        I_asy = self.results["I_asy"][-1]
+        # Infectious, mild course
         I_mild = self.results["I_mild"][-1]
-        I_severe_home = self.results["I_severe_home"][-1]
-        I_severe_hospital = self.results["I_severe_hospital"][-1]
-        I_fatal_home = self.results["I_fatal_home"][-1]
-        I_fatal_hospital = self.results["I_fatal_hospital"][-1]
-        R_from_asymptomatic = self.results["R_from_asymptomatic"][-1]
-        R_from_mild = self.results["R_from_mild"][-1]
-        R_from_severe = self.results["R_from_severe"][-1]
-        Dead = self.results["Dead"][-1]
+        # Infectious, severe course, before hospital stay
+        I_sev_pre_hos = self.results["I_sev_pre_hos"][-1]
+        # Infectious, severe course, subsquent stay at hospital with recovery
+        I_sev_hos_rec = self.results["I_sev_hos_rec"][-1]
+        # Infectious, severe course, subsquent stay at hospital deceased
+        I_sev_hos_dec = self.results["I_sev_hos_dec"][-1]
+        # Recovered, asymptomatic course
+        R_asy = self.results["R_asy"][-1]
+        # Recovered, mild course
+        R_mild = self.results["R_mild"][-1]
+        # Recovered, severe course
+        R_sev = self.results["R_sev"][-1]
+        # Deceased, severe course
+        D_sev = self.results["D_sev"][-1]
 
-        # Compute beta without any forced social distancing
-        duration_infectious = (
-            t_presymptomatic
-            + p_asymptomatic * t_recovery_asymptomatic
-            + p_mild * t_recovery_mild
+        # Computing the baseline beta without any intervention
+        average_duration_infectious_no_intervention = (
+            t_i_inc
+            + p_asy * t_asy
+            + p_mild * t_mild
+            + (p_sev_rec + p_sev_dec) * t_sev_pre_hos
         )
-        beta = r0 / duration_infectious
 
-        # Not infected
+        beta = r0 / average_duration_infectious_no_intervention
+
+        # Flows
+
+        # Susceptible
         dS = (
-            -beta
-            * (1 - infection_reduction)
-            * (I + I_asymptomatic + (1 - p_self_quarantine) * I_mild)
+            (1 - policy_strength)
+            * (-beta)
+            * (I_inc + I_asy + (1 - self_quar_strength) * (I_mild + I_sev_pre_hos))
             * S
         ) * self.dT
 
         # Non-infectiuous incubation time
         dE = (
-            beta
-            * (1 - infection_reduction)
-            * (I + I_asymptomatic + (1 - p_self_quarantine) * I_mild)
+            (1 - policy_strength)
+            * beta
+            * (I_inc + I_asy + (1 - self_quar_strength) * (I_mild + I_sev_pre_hos))
             * S
-            - a * E
+            - (1 / t_e_inc) * E
         ) * self.dT
 
         # Infectious incubation time
-        dI = (a * E - gamma * I) * self.dT
+        dI_inc = ((1 / t_e_inc) * E - (1 / t_i_inc) * I_inc) * self.dT
 
-        # Asymptomatic
-        dI_asymptomatic = (
-            p_asymptomatic * gamma * I - (1 / t_recovery_asymptomatic) * I_asymptomatic
-        ) * self.dT
+        # Asymptomatic course
+        dI_asy = ((1 / t_i_inc) * p_asy * I_inc - (1 / t_asy) * I_asy) * self.dT
 
-        # Mild
-        dI_mild = (p_mild * gamma * I - (1 / t_recovery_mild) * I_mild) * self.dT
+        # Mild course
+        dI_mild = ((1 / t_i_inc) * p_mild * I_inc - (1 / t_mild) * I_mild) * self.dT
 
-        # B: Severe course (two steps)
-        dI_severe_home = (
-            p_severe * gamma * I - (1 / t_home_severe) * I_severe_home
-        ) * self.dT
-        dI_severe_hospital = (
-            (1 / t_home_severe) * I_severe_home
-            - (1 / t_hospital_severe_recovered) * I_severe_hospital
+        # Severe course, pre hospital
+        dI_sev_pre_hos = (
+            (1 / t_i_inc) * (p_sev_rec + p_sev_dec) * I_inc
+            - (1 / t_sev_pre_hos) * I_sev_pre_hos
         ) * self.dT
 
-        # C: Fatal course (two steps)
-        dI_fatal_home = (
-            p_fatal * gamma * I - (1 / t_home_severe) * I_fatal_home
-        ) * self.dT
-        dI_fatal_hospital = (
-            (1 / t_home_severe) * I_fatal_home
-            - (1 / t_hospital_severe_deceased) * I_fatal_hospital
+        # Severe course, hospital, recovering
+        dI_sev_hos_rec = (
+            (1 / t_sev_pre_hos) * (p_sev_rec / (p_sev_rec + p_sev_dec)) * I_sev_pre_hos
+            - (1 / t_sev_hos_rec) * I_sev_hos_rec
         ) * self.dT
 
-        # Final flows from courses of illness into recovery or death
-        dR_from_asymptomatic = (
-            (1 / t_recovery_asymptomatic) * I_asymptomatic
+        # Severe course, hospital, fatal
+        dI_sev_hos_dec = (
+            (1 / t_sev_pre_hos) * (p_sev_dec / (p_sev_rec + p_sev_dec)) * I_sev_pre_hos
+            - (1 / t_sev_hos_dec) * I_sev_hos_dec
         ) * self.dT
-        dR_from_mild = ((1 / t_recovery_mild) * I_mild) * self.dT
-        dR_from_severe = (
-            (1 / t_hospital_severe_recovered) * I_severe_hospital
-        ) * self.dT
-        dDead = ((1 / t_hospital_severe_deceased) * I_fatal_hospital) * self.dT
 
-        # Store results
+        # Recovered asymptomatic
+        dR_asy = ((1 / t_asy) * I_asy) * self.dT
+
+        # Recovered from mild
+        dR_mild = ((1 / t_mild) * I_mild) * self.dT
+
+        # Recovered from severe
+        dR_sev = ((1 / t_sev_hos_rec) * I_sev_hos_rec) * self.dT
+
+        # Deceased from severe
+        dD_sev = ((1 / t_sev_hos_dec) * I_sev_hos_dec) * self.dT
+
+        # Storing updates
         self.results["T"].append(time)
-        self.results["P"].append(infection_reduction)
+        self.results["P"].append(policy_strength)
         self.results["S"].append(S + dS)
         self.results["E"].append(E + dE)
-        self.results["I"].append(I + dI)
-        self.results["I_asymptomatic"].append(I_asymptomatic + dI_asymptomatic)
+        self.results["I_inc"].append(I_inc + dI_inc)
+        self.results["I_asy"].append(I_asy + dI_asy)
         self.results["I_mild"].append(I_mild + dI_mild)
-        self.results["I_severe_home"].append(I_severe_home + dI_severe_home)
-        self.results["I_severe_hospital"].append(I_severe_hospital + dI_severe_hospital)
-        self.results["I_fatal_home"].append(I_fatal_home + dI_fatal_home)
-        self.results["I_fatal_hospital"].append(I_fatal_hospital + dI_fatal_hospital)
-        self.results["R_from_asymptomatic"].append(
-            R_from_asymptomatic + dR_from_asymptomatic
+        self.results["I_sev_pre_hos"].append(I_sev_pre_hos + dI_sev_pre_hos)
+        self.results["I_sev_hos_rec"].append(I_sev_hos_rec + dI_sev_hos_rec)
+        self.results["I_sev_hos_dec"].append(I_sev_hos_dec + dI_sev_hos_dec)
+        self.results["R_asy"].append(R_asy + dR_asy)
+        self.results["R_mild"].append(R_mild + dR_mild)
+        self.results["R_sev"].append(R_sev + dR_sev)
+        self.results["D_sev"].append(D_sev + dD_sev)
+        
+        # Computing the hypothetical R0 with the current interventions in place
+        average_duration_infectious_with_intervention = (
+            t_i_inc
+            + p_asy * t_asy
+            + (1 - self_quar_strength)
+            * (p_mild * t_mild + (p_sev_rec + p_sev_dec) * t_sev_pre_hos)
         )
-        self.results["R_from_mild"].append(R_from_mild + dR_from_mild)
-        self.results["R_from_severe"].append(R_from_severe + dR_from_severe)
-        self.results["Dead"].append(Dead + dDead)
 
-        duration_infectious_with_policy = (
-                    t_presymptomatic
-                    + p_asymptomatic * t_recovery_asymptomatic
-                    + p_mild * (1 - p_self_quarantine) * t_recovery_mild
-                )
-        r = beta * (1 - infection_reduction) * duration_infectious_with_policy
+        r = beta * (1 - policy_strength) * average_duration_infectious_with_intervention
+        # print(
+        #    f"{average_duration_infectious_no_intervention:.2f} vs. {average_duration_infectious_with_intervention:.2f}"
+        # )  # for debugging
         self.results["Hypothetical R0"].append(r)
 
     @property
@@ -157,48 +193,49 @@ class Seir(object):
             .resample(resampling_rule)
             .first()
             .assign(
-                Hospitalized=lambda x: x["I_severe_hospital"] + x["I_fatal_hospital"],
+                Hospitalized=lambda x: x["I_sev_hos_rec"] + x["I_sev_hos_dec"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
                 HospitalizedExclICU=lambda x: x["Hospitalized"] - x["ICU"],
-                R_combined=lambda x: x["R_from_asymptomatic"]
-                + x["R_from_mild"]
-                + x["R_from_severe"],
-                I_combined=lambda x: x["I"]
-                + x["I_asymptomatic"]
+                Recovered=lambda x: x["R_asy"] + x["R_mild"] + x["R_sev"],
+                Infectious=lambda x: x["I_inc"]
+                + x["I_asy"]
                 + x["I_mild"]
-                + x["I_severe_home"]
-                + x["I_severe_hospital"]
-                + x["I_fatal_home"]
-                + x["I_fatal_hospital"],
-                Currently_infected=lambda x: x["E"]
-                + x["I"]
-                + x["I_asymptomatic"]
-                + x["I_mild"]
-                + x["I_severe_home"]
-                + x["I_severe_hospital"]
-                + x["I_fatal_home"]
-                + x["I_fatal_hospital"],
+                + x["I_sev_pre_hos"]
+                + x["I_sev_hos_rec"]
+                + x["I_sev_hos_dec"],
+                Infected=lambda x: x["E"] + x["Infectious"],
                 HospitalCapacity=self.params["hospital_capacity"],
                 IcuCapacity=self.params["icu_capacity"],
-                Have_or_had_virus=lambda x: x["Currently_infected"]
-                + x["R_combined"]
-                + x["Dead"],
+                Cases=lambda x: x["Infected"] + x["Recovered"] + x["D_sev"],
             )
-            .rename(columns={"P": "Reduction in new infections through policy"})
+            .rename(
+                columns={
+                    "P": "Reduction in new infections through policy",
+                    "S": "Susceptible",
+                    "E": "Exposed",
+                    "R_asy": "Recovered from asymptomatic",
+                    "R_mild": "Recovered from mild",
+                    "R_sev": "Recovered from severe",
+                    "D_sev": "Deceased",
+                }
+            )
         )
 
         # Scale
         columns_with_individuals = [
-            "Have_or_had_virus",
-            "Currently_infected",
+            "Susceptible",
+            "Cases",
+            "Exposed",
+            "Infectious",
+            "Infected",
             "Hospitalized",
             "HospitalizedExclICU",
             "ICU",
-            "Dead",
-            "R_from_asymptomatic",
-            "R_from_mild",
-            "R_from_severe",
-            "R_combined",
+            "Deceased",
+            "Recovered from asymptomatic",
+            "Recovered from mild",
+            "Recovered from severe",
+            "Recovered",
         ]
         df[columns_with_individuals] = (
             df[columns_with_individuals] * self.params["population_size"]
@@ -207,19 +244,19 @@ class Seir(object):
         return df
 
     @staticmethod
-    def _steps_to_path(infection_reduction_steps, dT=1):
-        """Convert dictionary of infection_reduction steps to infection_reduction path and associated dates"""
-        isodates, infection_reductions = zip(*infection_reduction_steps)
+    def _steps_to_path(policy_strength_steps, dT=1):
+        """Convert dictionary of policy_strength steps to policy_strength path and associated dates"""
+        isodates, policy_strengths = zip(*policy_strength_steps)
         dates = [datetime.datetime.fromisoformat(d) for d in isodates]
         date_path = []
-        infection_reduction_path = []
+        policy_strength_path = []
         for i, x in enumerate(dates[:-1]):
             length = int((dates[i + 1] - dates[i]).days / dT)
             dates_regime = [dates[i] + timedelta(days=dT * n) for n in range(length)]
-            infection_reduction_path_regime = [infection_reductions[i]] * length
+            policy_strength_path_regime = [policy_strengths[i]] * length
             date_path.extend(dates_regime)
-            infection_reduction_path.extend(infection_reduction_path_regime)
-        return list(zip(date_path, infection_reduction_path))
+            policy_strength_path.extend(policy_strength_path_regime)
+        return list(zip(date_path, policy_strength_path))
 
     def plot_summary(self):
         data = self.data
@@ -227,14 +264,21 @@ class Seir(object):
         plt.tight_layout(pad=1.5)
         data[["Reduction in new infections through policy"]].plot(ax=ax[0, 0])
         data[["Hypothetical R0"]].plot(ax=ax[0, 1])
-        data[["Have_or_had_virus"]].plot(ax=ax[1, 0])
-        data[["Dead"]].plot(ax=ax[1, 1])
-        data[["Currently_infected"]].plot(ax=ax[2, 0])
+        data[["Cases"]].plot(ax=ax[1, 0])
+        data[["Deceased"]].plot(ax=ax[1, 1])
+        data[["Infectious"]].plot(ax=ax[2, 0])
         data[["Hospitalized", "ICU"]].plot(ax=ax[2, 1])
-        data[["S", "E", "I_combined", "R_combined"]].plot(ax=ax[3, 0])
-        data[["R_from_asymptomatic", "R_from_mild", "R_from_severe", "Dead"]].plot(
-            ax=ax[3, 1]
+        data[["Susceptible", "Exposed", "Infectious", "Recovered", "Deceased"]].plot(
+            ax=ax[3, 0]
         )
+        data[
+            [
+                "Recovered from asymptomatic",
+                "Recovered from mild",
+                "Recovered from severe",
+                "Deceased",
+            ]
+        ].plot(ax=ax[3, 1])
         for subplot in ax.reshape(-1):
             subplot.set_xlabel("")
         plt.show()

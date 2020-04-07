@@ -1,39 +1,45 @@
 params = {
     "r0": 2.4,
-    "t_incubation": 4.6,
-    "t_presymptomatic": 0.5,
-    "t_recovery_asymptomatic": 6,
-    "t_recovery_mild": 6,
-    "t_home_severe": 5,
-    "t_hospital_severe_recovered": 10.4,
-    "t_hospital_severe_deceased": 10.4,
-    "p_asymptomatic": 0.3,
-    "p_severe": 0.044,
-    "p_fatal": 0.009,
-    "p_self_quarantine": 0.66,
+    "t_e_inc": 4.6,
+    "t_i_inc": 0.5,
+    "t_asy": 6,
+    "t_mild": 7,
+    "t_sev_pre_hos": 5,
+    "t_sev_hos_rec": 25.5,
+    "t_sev_hos_dec": 9,
+    "p_asy": 0.3,
+    "p_sev_rec": 0.044,
+    "p_sev_dec": 0.009,
+    "self_quar_strength": 0.0,
     "p_icu_given_hospital": 0.30,
     "population_size": 82790000,
+    "initially_infected": 50,
     "hospital_capacity": 200000,
     "icu_capacity": 14000,
 }
 
 start = {
     "T": 0.0,
-    "S": (1 - 0.006 / 10000),
-    "E": 0.006 / 10000,  # assuming 50 people had just caught the virus (currently assumed to be 15/01/2020)
-    "I": 0.0,
-    "I_asymptomatic": 0.0,
+    "S": 0.0,
+    "E": 0.0,
+    "I_inc": 0.0,
+    "I_asy": 0.0,
     "I_mild": 0.0,
-    "I_severe_home": 0.0,
-    "I_severe_hospital": 0.0,
-    "I_fatal_home": 0.0,
-    "I_fatal_hospital": 0.0,
-    "R_from_asymptomatic": 0.0,
-    "R_from_mild": 0.0,
-    "R_from_severe": 0.0,
-    "Dead": 0,
+    "I_sev_pre_hos": 0.0,
+    "I_sev_hos_rec": 0.0,
+    "I_sev_hos_dec": 0.0,
+    "R_asy": 0.0,
+    "R_mild": 0.0,
+    "R_sev": 0.0,
+    "D_sev": 0,
     "Hypothetical R0": 2.4,
 }
+
+# Setting intial values of infected
+# x / 10000 = initially_infected / population_size
+x = (params["initially_infected"] / params["population_size"]) * 10000
+start.update({"S": 1 - x / 10000})
+start.update({"E": x / 10000})
 
 policy = {
     "policy_period0": "2020-01-12",
