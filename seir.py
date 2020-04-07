@@ -26,7 +26,7 @@ class Seir(object):
         """Iterate current state forward by one step with current policy_strength"""
         time = time + timedelta(days=self.dT)  # roll forward time
 
-        ## Retrieve parameters
+        # Retrieve parameters
 
         # Basic repreproduction number
         r0 = self.params["r0"]
@@ -58,7 +58,7 @@ class Seir(object):
         # Share of individuals with symptoms who self-quarantine
         self_quar_strength = self.params["self_quar_strength"]
 
-        ## Model equations
+        # Model equations
 
         # Quantities
 
@@ -170,7 +170,7 @@ class Seir(object):
         self.results["R_mild"].append(R_mild + dR_mild)
         self.results["R_sev"].append(R_sev + dR_sev)
         self.results["D_sev"].append(D_sev + dD_sev)
-        
+
         # Computing the hypothetical R0 with the current interventions in place
         average_duration_infectious_with_intervention = (
             t_i_inc
@@ -195,7 +195,7 @@ class Seir(object):
             .assign(
                 Hospitalized=lambda x: x["I_sev_hos_rec"] + x["I_sev_hos_dec"],
                 ICU=lambda x: x["Hospitalized"] * self.params["p_icu_given_hospital"],
-                HospitalizedExclICU=lambda x: x["Hospitalized"] - x["ICU"],
+                HospitalizedExclIcu=lambda x: x["Hospitalized"] - x["ICU"],
                 Recovered=lambda x: x["R_asy"] + x["R_mild"] + x["R_sev"],
                 Infectious=lambda x: x["I_inc"]
                 + x["I_asy"]
@@ -217,6 +217,7 @@ class Seir(object):
                     "R_mild": "Recovered from mild",
                     "R_sev": "Recovered from severe",
                     "D_sev": "Deceased",
+                    "HospitalizedExclIcu": "Hospitalized excl. ICU"
                 }
             )
         )
@@ -229,7 +230,7 @@ class Seir(object):
             "Infectious",
             "Infected",
             "Hospitalized",
-            "HospitalizedExclICU",
+            "Hospitalized excl. ICU",
             "ICU",
             "Deceased",
             "Recovered from asymptomatic",
@@ -267,7 +268,7 @@ class Seir(object):
         data[["Cases"]].plot(ax=ax[1, 0])
         data[["Deceased"]].plot(ax=ax[1, 1])
         data[["Infectious"]].plot(ax=ax[2, 0])
-        data[["Hospitalized", "ICU"]].plot(ax=ax[2, 1])
+        data[["Hospitalized excl. ICU", "ICU"]].plot(ax=ax[2, 1])
         data[["Susceptible", "Exposed", "Infectious", "Recovered", "Deceased"]].plot(
             ax=ax[3, 0]
         )
