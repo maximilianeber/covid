@@ -170,7 +170,6 @@ class Seir(object):
         self.results["R_mild"].append(R_mild + dR_mild)
         self.results["R_sev"].append(R_sev + dR_sev)
         self.results["D_sev"].append(D_sev + dD_sev)
-
         # Computing the hypothetical R0 with the current interventions in place
         average_duration_infectious_with_intervention = (
             t_i_inc
