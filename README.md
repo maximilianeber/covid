@@ -11,7 +11,7 @@ We have tried to stick to standard modelling assumptions and check our work agai
 Picking the right parameters is very difficult since many important parameters are currently unknown (e.g. the share of asymptomatic infections). Moreover, model results are very sensitive to parameter choices. We kept most parameters variable so you can see the effect of changing assumptions on the outcome.
 
 ### Interactive Demo
-You can play with the [interactive version](https://quirky-mclean-bf617d.netlify.com) of the model in your browser [underlying code](https://github.com/alsino/corona-impact-analysis).
+You can play with the [interactive version](https://covid19-scenarios.netlify.com) of the model in your browser [underlying code](https://github.com/alsino/corona-impact-analysis).
 
 [![Image of Interactive Demo](demo.png)](https://quirky-mclean-bf617d.netlify.com)
 
