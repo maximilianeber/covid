@@ -1,7 +1,7 @@
 # COVID-19 Policy Simulations
 
 ### Motivation
-This model is meant to illustrate the dynamic impact of various policy paths. Most existing COVID simulators only allow for a single policy intervention. The set of interventions, however, is important when thinking about exist strategies for the time after the initial peak of infections. __For an in detail summary of the model, both verbally and mathematically, please see the notebook [model summary](https://github.com/maximilianeber/covid/blob/development/summary.ipynb) __
+This model is meant to illustrate the dynamic impact of various policy paths. Most existing COVID simulators only allow for a single policy intervention. The set of interventions, however, is important when thinking about exist strategies for the time after the initial peak of infections. __For an in detail summary of the model, both verbally and mathematically, please see the notebook [model summary.](https://github.com/maximilianeber/covid/blob/development/summary.ipynb)__
 
 ### Disclaimer
 This model is not meant to be used as a forecasting tool. It is very hard to make accurate forecasts for the current epidemic. FiveThirtyEight has a [post](https://fivethirtyeight.com/features/why-its-so-freaking-hard-to-make-a-good-covid-19-model/?utm_campaign=Data_Elixir&utm_source=Data_Elixir_279) on why that is. Instead, we aim to illustrate the key mechanics of a simple SEIR model when changing policy dynamically. 
@@ -21,8 +21,8 @@ You can play with the [interactive version](https://covid19-scenarios.netlify.co
 * [COVID Scenarios by Neherlab](https://neherlab.org/covid19/)
 
 ### Modelling Approach
-We have followed the [code](https://github.com/gabgoh/epcalc/blob/master/src/App.svelte) that is underlying the Covid Calculator closesly. We extended the model in a couple of ways. Most importantly, we allow for dynamic policy paths which affect infections caused by all individuals or only by symptomatic individuals. For this, we have added a few additional features. For example, a compartments for the asymptomatic part of the incubation period (shared by all individuals) or the share of individuals with an asymptomatic course throughout. Please check [model summary](https://github.com/maximilianeber/covid/blob/development/summary.ipynb) and `seir.py` for the exact model mechanics, e.g. a flow diagram.
-
+We have followed the [code](https://github.com/gabgoh/epcalc/blob/master/src/App.svelte) that is underlying the Covid Calculator closesly. We extended the model in a couple of ways. Most importantly, we allow for dynamic policy paths which affect infections caused by all individuals or only by symptomatic individuals. For this, we have added a few additional features. For example, a compartments for the asymptomatic part of the incubation period (shared by all individuals) or the share of individuals with an asymptomatic course throughout. Please check the [model summary](https://github.com/maximilianeber/covid/blob/development/summary.ipynb) and `seir.py` for the exact model mechanics.
+x
 #### Authors
 Friedrich Geiecke  
 Alsino Skowronnek  
