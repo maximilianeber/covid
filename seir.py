@@ -10,9 +10,13 @@ class Seir(object):
         self.start = start
         self.dT = dT
 
-    def simulate(self, policy_strength_steps):
+    def simulate(self, policy_specs):
+
+        # Store type of policy: all vs sym only
+        self.policy_type = policy_specs[0]
+
         # Convert policy steps to daily paths
-        self.policy_path = self._steps_to_path(policy_strength_steps, dT=self.dT)
+        self.policy_path = self._steps_to_path(policy_specs[1], dT=self.dT)
 
         # Initialize results with starting values
         self.results = {k: [v] for k, v in self.start.items()}
@@ -27,7 +31,18 @@ class Seir(object):
         time = time + timedelta(days=self.dT)  # roll forward time
 
         # Retrieve parameters
-
+        
+        # Policy type
+        if self.policy_type=="sym":
+            
+            policy_strength_all = 0
+            policy_strength_sym = policy_strength
+            
+        else:
+            
+            policy_strength_all = policy_strength
+            policy_strength_sym = 0  
+            
         # Basic repreproduction number
         r0 = self.params["r0"]
 
@@ -54,9 +69,6 @@ class Seir(object):
         p_sev_dec = self.params["p_sev_dec"]
         # Share of mild cases
         p_mild = 1 - p_asy - p_sev_rec - p_sev_dec
-
-        # Share of individuals with symptoms who self-quarantine
-        self_quar_strength = self.params["self_quar_strength"]
 
         # Model equations
 
@@ -101,17 +113,17 @@ class Seir(object):
 
         # Susceptible
         dS = (
-            (1 - policy_strength)
+            (1 - policy_strength_all)
             * (-beta)
-            * (I_inc + I_asy + (1 - self_quar_strength) * (I_mild + I_sev_pre_hos))
+            * (I_inc + I_asy + (1 - policy_strength_sym) * (I_mild + I_sev_pre_hos))
             * S
         ) * self.dT
 
         # Non-infectiuous incubation time
         dE = (
-            (1 - policy_strength)
+            (1 - policy_strength_all)
             * beta
-            * (I_inc + I_asy + (1 - self_quar_strength) * (I_mild + I_sev_pre_hos))
+            * (I_inc + I_asy + (1 - policy_strength_sym) * (I_mild + I_sev_pre_hos))
             * S
             - (1 / t_e_inc) * E
         ) * self.dT
@@ -174,11 +186,11 @@ class Seir(object):
         average_duration_infectious_with_intervention = (
             t_i_inc
             + p_asy * t_asy
-            + (1 - self_quar_strength)
+            + (1 - policy_strength_sym)
             * (p_mild * t_mild + (p_sev_rec + p_sev_dec) * t_sev_pre_hos)
         )
 
-        r = beta * (1 - policy_strength) * average_duration_infectious_with_intervention
+        r = beta * (1 - policy_strength_all) * average_duration_infectious_with_intervention
         # print(
         #    f"{average_duration_infectious_no_intervention:.2f} vs. {average_duration_infectious_with_intervention:.2f}"
         # )  # for debugging
