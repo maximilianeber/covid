@@ -10,13 +10,13 @@ class Seir(object):
         self.start = start
         self.dT = dT
 
-    def simulate(self, policy_specs):
+    def simulate(self, policy_strength_steps, policy_type):
 
         # Store type of policy: all vs sym only
-        self.policy_type = policy_specs[0]
+        self.policy_type = policy_type
 
         # Convert policy steps to daily paths
-        self.policy_path = self._steps_to_path(policy_specs[1], dT=self.dT)
+        self.policy_path = self._steps_to_path(policy_strength_steps, dT=self.dT)
 
         # Initialize results with starting values
         self.results = {k: [v] for k, v in self.start.items()}
@@ -31,18 +31,7 @@ class Seir(object):
         time = time + timedelta(days=self.dT)  # roll forward time
 
         # Retrieve parameters
-        
-        # Policy type
-        if self.policy_type=="sym":
-            
-            policy_strength_all = 0
-            policy_strength_sym = policy_strength
-            
-        else:
-            
-            policy_strength_all = policy_strength
-            policy_strength_sym = 0  
-            
+
         # Basic repreproduction number
         r0 = self.params["r0"]
 
@@ -106,27 +95,68 @@ class Seir(object):
             + p_mild * t_mild
             + (p_sev_rec + p_sev_dec) * t_sev_pre_hos
         )
-
         beta = r0 / average_duration_infectious_no_intervention
 
         # Flows
 
-        # Susceptible
-        dS = (
-            (1 - policy_strength_all)
-            * (-beta)
-            * (I_inc + I_asy + (1 - policy_strength_sym) * (I_mild + I_sev_pre_hos))
-            * S
-        ) * self.dT
+        # Susceptible and exposed
 
-        # Non-infectiuous incubation time
-        dE = (
-            (1 - policy_strength_all)
-            * beta
-            * (I_inc + I_asy + (1 - policy_strength_sym) * (I_mild + I_sev_pre_hos))
-            * S
-            - (1 / t_e_inc) * E
-        ) * self.dT
+        # Policy type
+        if self.policy_type == "sym":
+
+            # Susceptible
+            dS = (
+                (-beta)
+                * (I_inc + I_asy + (1 - policy_strength) * (I_mild + I_sev_pre_hos))
+                * S
+            ) * self.dT
+
+            # Non-infectiuous incubation time
+            dE = (
+                beta
+                * (I_inc + I_asy + (1 - policy_strength) * (I_mild + I_sev_pre_hos))
+                * S
+                - (1 / t_e_inc) * E
+            ) * self.dT
+
+            # Computing the hypothetical R0 associated with the current policy intervention
+            r0_hyp = beta * (
+                t_i_inc
+                + p_asy * t_asy
+                + (1 - policy_strength)
+                * (p_mild * t_mild + (p_sev_rec + p_sev_dec) * t_sev_pre_hos)
+            )
+
+        else:
+
+            # Susceptible
+            dS = (
+                (1 - policy_strength)
+                * (-beta)
+                * (I_inc + I_asy + I_mild + I_sev_pre_hos)
+                * S
+            ) * self.dT
+
+            # Non-infectiuous incubation time
+            dE = (
+                (1 - policy_strength)
+                * beta
+                * (I_inc + I_asy + I_mild + I_sev_pre_hos)
+                * S
+                - (1 / t_e_inc) * E
+            ) * self.dT
+
+            # Computing the hypothetical R0 associated with the current policy intervention
+            r0_hyp = (
+                beta
+                * (1 - policy_strength)
+                * (
+                    t_i_inc
+                    + p_asy * t_asy
+                    + p_mild * t_mild
+                    + (p_sev_rec + p_sev_dec) * t_sev_pre_hos
+                )
+            )
 
         # Infectious incubation time
         dI_inc = ((1 / t_e_inc) * E - (1 / t_i_inc) * I_inc) * self.dT
@@ -182,19 +212,7 @@ class Seir(object):
         self.results["R_mild"].append(R_mild + dR_mild)
         self.results["R_sev"].append(R_sev + dR_sev)
         self.results["D_sev"].append(D_sev + dD_sev)
-        # Computing the hypothetical R0 with the current interventions in place
-        average_duration_infectious_with_intervention = (
-            t_i_inc
-            + p_asy * t_asy
-            + (1 - policy_strength_sym)
-            * (p_mild * t_mild + (p_sev_rec + p_sev_dec) * t_sev_pre_hos)
-        )
-
-        r = beta * (1 - policy_strength_all) * average_duration_infectious_with_intervention
-        # print(
-        #    f"{average_duration_infectious_no_intervention:.2f} vs. {average_duration_infectious_with_intervention:.2f}"
-        # )  # for debugging
-        self.results["Hypothetical R0"].append(r)
+        self.results["Hypothetical R0"].append(r0_hyp)
 
     @property
     def data(self, resampling_rule="1d"):
@@ -228,7 +246,7 @@ class Seir(object):
                     "R_mild": "Recovered from mild",
                     "R_sev": "Recovered from severe",
                     "D_sev": "Deceased",
-                    "HospitalizedExclIcu": "Hospitalized excl. ICU"
+                    "HospitalizedExclIcu": "Hospitalized excl. ICU",
                 }
             )
         )

@@ -58,12 +58,11 @@ policy = {
 
 def args_to_policy(args):
     policy = [
-        args.get("policy_type"),
-        [(args.get("policy_period0"), 0.0),
+        (args.get("policy_period0"), 0.0),
         (args.get("policy_period1"), args.get("policy_strength1")),
         (args.get("policy_period2"), args.get("policy_strength2")),
         (args.get("policy_period3"), args.get("policy_strength3")),
         (args.get("policy_period4"), args.get("policy_strength4")),
-        (args.get("policy_period5"), 0.0)],
+        (args.get("policy_period5"), 0.0),
     ]
     return policy
