@@ -11,7 +11,7 @@ We have tried to stick to standard modelling assumptions and checked our work ag
 Another important issue which the dashboard and model hopefully illustrate is that even simple models have many degrees of freedom. Picking the right parameter values is very difficult as many important parameters are currently unknown and subject of ongoing research (e.g. the share of asymptomatic infections, duration of the infectious part of the incubation time). Importantly, model results are very sensitive to parameter choices. We kept most parameters adjustable in the dashboard so you can see the effect of changing assumptions on the outcome.
 
 ### Interactive Demo
-You can play with the [interactive version](https://covid19-scenarios.netlify.com) of the model in your browser [underlying code](https://github.com/alsino/corona-impact-analysis).
+You can play with the [interactive version](https://covid19-scenarios.netlify.com) of the model in your browser [underlying code of dashboard](https://github.com/alsino/corona-impact-analysis).
 
 [![Image of Interactive Demo](documentation/demo.png)](https://covid19-scenarios.netlify.com)
 
