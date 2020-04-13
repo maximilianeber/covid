@@ -47,11 +47,11 @@ class Simulation(Resource):
         else:
             args = parser.parse_args(strict=True)
             policy_request = args_to_policy(args)
+            policy_type = args.get("policy_type")
             params_request = {k: args[k] for k in params.keys()}
             start_request = {k: args[k] for k in start.keys()}
-
             seir = Seir(params=params_request, start=start_request)
-            seir.simulate(policy_request)
+            seir.simulate(policy_request, policy_type)
         return data_to_list(seir.data)
 
     @api.expect(parser)
@@ -62,10 +62,11 @@ class Simulation(Resource):
         else:
             args = parser.parse_args(strict=True)
             policy_request = args_to_policy(args)
+            policy_type = args.get("policy_type")
             params_request = {k: args[k] for k in params.keys()}
             start_request = {k: args[k] for k in start.keys()}
             seir = Seir(params=params_request, start=start_request)
-            seir.simulate(policy_request)
+            seir.simulate(policy_request, policy_type)
             return data_to_list(seir.data)
 
 
