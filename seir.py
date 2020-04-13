@@ -10,7 +10,7 @@ class Seir(object):
         self.start = start
         self.dT = dT
 
-    def simulate(self, policy_strength_steps, policy_type):
+    def simulate(self, policy_strength_steps, policy_type="all"):
 
         # Store type of policy: all vs sym only
         self.policy_type = policy_type
@@ -100,35 +100,7 @@ class Seir(object):
         # Flows
 
         # Susceptible and exposed
-
-        # Policy type
-        if self.policy_type == "sym":
-
-            # Susceptible
-            dS = (
-                (-beta)
-                * (I_inc + I_asy + (1 - policy_strength) * (I_mild + I_sev_pre_hos))
-                * S
-            ) * self.dT
-
-            # Non-infectiuous incubation time
-            dE = (
-                beta
-                * (I_inc + I_asy + (1 - policy_strength) * (I_mild + I_sev_pre_hos))
-                * S
-                - (1 / t_e_inc) * E
-            ) * self.dT
-
-            # Computing the hypothetical R0 associated with the current policy intervention
-            r0_hyp = beta * (
-                t_i_inc
-                + p_asy * t_asy
-                + (1 - policy_strength)
-                * (p_mild * t_mild + (p_sev_rec + p_sev_dec) * t_sev_pre_hos)
-            )
-
-        else:
-
+        if self.policy_type == "all":
             # Susceptible
             dS = (
                 (1 - policy_strength)
@@ -157,6 +129,32 @@ class Seir(object):
                     + (p_sev_rec + p_sev_dec) * t_sev_pre_hos
                 )
             )
+        elif self.policy_type == "sym":
+            # Susceptible
+            dS = (
+                (-beta)
+                * (I_inc + I_asy + (1 - policy_strength) * (I_mild + I_sev_pre_hos))
+                * S
+            ) * self.dT
+
+            # Non-infectiuous incubation time
+            dE = (
+                beta
+                * (I_inc + I_asy + (1 - policy_strength) * (I_mild + I_sev_pre_hos))
+                * S
+                - (1 / t_e_inc) * E
+            ) * self.dT
+
+            # Computing the hypothetical R0 associated with the current policy intervention
+            r0_hyp = beta * (
+                t_i_inc
+                + p_asy * t_asy
+                + (1 - policy_strength)
+                * (p_mild * t_mild + (p_sev_rec + p_sev_dec) * t_sev_pre_hos)
+            )
+
+        else:
+            raise NotImplementedError(f"Unknown policy type {self.policy_type}")
 
         # Infectious incubation time
         dI_inc = ((1 / t_e_inc) * E - (1 / t_i_inc) * I_inc) * self.dT
