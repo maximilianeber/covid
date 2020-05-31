@@ -14,6 +14,7 @@ Another important issue which the dashboard and model hopefully illustrate is th
 You can play with the [interactive version](https://covid19-scenarios.netlify.com) of the model in your browser [underlying code of dashboard](https://github.com/alsino/corona-impact-analysis).
 
 [![Image of Interactive Demo](documentation/demo.png)](https://covid19-scenarios.netlify.com)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmaximilianeber%2Fcovid.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmaximilianeber%2Fcovid?ref=badge_shield)
 
 ### Related work
 * [COVID Calculator](http://gabgoh.github.io/COVID/) ([Code](https://github.com/gabgoh/epcalc/blob/master/src/App.svelte))
@@ -28,3 +29,7 @@ Friedrich Geiecke
 Alsino Skowronnek  
 Wolfgang Ridinger  
 Maximilian Eber  
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmaximilianeber%2Fcovid.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmaximilianeber%2Fcovid?ref=badge_large)
